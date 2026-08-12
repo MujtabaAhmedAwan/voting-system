@@ -18,12 +18,11 @@ export async function POST(request) {
     // Send OTP via email
     if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
        await sendOTP(email, otp);
+       return NextResponse.json({ success: true, message: 'OTP sent successfully' });
     } else {
        console.log(`[DEV MODE] OTP for ${email} is: ${otp}`);
-       // If no email config, we still pretend it succeeded for UI preview
+       return NextResponse.json({ success: false, error: 'Vercel Environment Variables (EMAIL_USER or EMAIL_APP_PASSWORD) are completely missing or empty!' }, { status: 500 });
     }
-
-    return NextResponse.json({ success: true, message: 'OTP sent successfully' });
   } catch (error) {
     console.error('Send OTP Error:', error);
     return NextResponse.json({ success: false, error: error.message || 'Failed to send OTP' }, { status: 500 });
