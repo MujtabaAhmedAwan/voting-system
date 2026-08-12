@@ -100,7 +100,7 @@ export default function Home() {
           <form className="auth-form" onSubmit={handleRegister}>
             <input type="text" placeholder="Full Name" required value={formData.name} onChange={(e)=>setFormData({...formData, name: e.target.value})} />
             <input type="email" placeholder="Email Address" required value={formData.email} onChange={(e)=>setFormData({...formData, email: e.target.value})} />
-            <input type="tel" placeholder="Phone Number" required value={formData.phone} onChange={(e)=>setFormData({...formData, phone: e.target.value})} />
+            <input type="tel" placeholder="Phone Number (e.g., 03001234567)" required pattern="03[0-9]{9}" title="Enter an 11-digit Pakistani phone number starting with 03" value={formData.phone} onChange={(e)=>setFormData({...formData, phone: e.target.value})} />
             <button type="submit" className="search-btn">Send OTP to Email</button>
           </form>
         </div>
