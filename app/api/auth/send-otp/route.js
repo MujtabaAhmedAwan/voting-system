@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { sendOTP } from '../../../utils/email';
+import { sendOTP } from '../../../../utils/email';
 
 // In a real app, this would be stored in the database.
 // For Vercel deployment preview, we use an in-memory map (note: resets on serverless cold starts)

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { notifyAdmin } from '../../../utils/email';
+import { notifyAdmin } from '../../../../utils/email';
 
 export async function POST(request) {
   try {
