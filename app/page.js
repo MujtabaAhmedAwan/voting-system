@@ -1,9 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './globals.css';
 
 export default function Home() {
-  const [authState, setAuthState] = useState('REGISTER'); // REGISTER, OTP, PENDING, APPROVED
+  const [authState, setAuthState] = useState('REGISTER'); // REGISTER, OTP, PENDING, APPROVED, DENIED
   
   // Registration State
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
@@ -24,9 +24,29 @@ export default function Home() {
     pollingStation: "Pending Assignment (Future Election)"
   };
 
+  // Poll for admin approval when in PENDING state
+  useEffect(() => {
+    let interval;
+    if (authState === 'PENDING') {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/auth/status?email=${encodeURIComponent(formData.email)}`);
+          const data = await res.json();
+          if (data.status === 'APPROVED') {
+            setAuthState('APPROVED');
+          } else if (data.status === 'DENIED') {
+            setAuthState('DENIED');
+          }
+        } catch (e) {
+          console.error('Polling error', e);
+        }
+      }, 3000); // Check every 3 seconds
+    }
+    return () => clearInterval(interval);
+  }, [authState, formData.email]);
+
   const handleRegister = async (e) => {
     e.preventDefault();
-    // Simulate sending OTP (or call actual API if deployed)
     try {
       await fetch('/api/auth/send-otp', {
         method: 'POST',
@@ -36,13 +56,12 @@ export default function Home() {
       setAuthState('OTP');
     } catch (err) {
       console.error(err);
-      setAuthState('OTP'); // Continue anyway for UI demo
+      setAuthState('OTP'); 
     }
   };
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    // Simulate Verifying OTP (or call actual API)
     try {
       await fetch('/api/auth/verify-otp', {
         method: 'POST',
@@ -52,7 +71,7 @@ export default function Home() {
       setAuthState('PENDING');
     } catch (err) {
       console.error(err);
-      setAuthState('PENDING'); // Continue anyway for UI demo
+      setAuthState('PENDING'); 
     }
   };
 
@@ -96,15 +115,19 @@ export default function Home() {
       {/* --- 3. PENDING ADMIN APPROVAL SCREEN --- */}
       {authState === 'PENDING' && (
         <div className="auth-box text-center">
-          <div className="status-icon wait">⏳</div>
+          <div className="status-icon wait" style={{animation: 'spin 2s linear infinite'}}>⏳</div>
           <h2>Wait for Access</h2>
           <p>Your email has been verified correctly!</p>
-          <p className="muted">An email has been sent to the Admin ({'sultanmujtabaahmedawan@gmail.com'}) with your details. Once they approve your request, you will gain access.</p>
-          
-          {/* Mock button for the demo so you can test the main app without waiting for an actual admin */}
-          <button onClick={() => setAuthState('APPROVED')} className="demo-approve-btn">
-            [Demo] Simulate Admin Approval
-          </button>
+          <p className="muted">An email has been sent to the Admin with your details. Once they approve your request from their email, you will gain access automatically.</p>
+        </div>
+      )}
+
+      {/* --- ACCESS DENIED SCREEN --- */}
+      {authState === 'DENIED' && (
+        <div className="auth-box text-center">
+          <div className="status-icon" style={{color: 'red'}}>❌</div>
+          <h2 style={{color: 'red'}}>Access Denied</h2>
+          <p>The Admin has rejected your request to access the Voting System.</p>
         </div>
       )}
 
