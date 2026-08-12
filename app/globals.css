@@ -215,3 +215,59 @@ body {
   margin-bottom: 0.5rem;
   border: 1px solid var(--border-color);
 }
+
+/* Auth Styles */
+.auth-box {
+  max-width: 450px;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.auth-form input {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: #0f172a;
+  color: white;
+  font-size: 1.1rem;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.status-icon.wait {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.muted {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.demo-approve-btn {
+  margin-top: 2rem;
+  background: transparent;
+  border: 1px dashed var(--primary);
+  color: var(--primary);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.demo-approve-btn:hover {
+  background: rgba(79, 70, 229, 0.1);
+}
