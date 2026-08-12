@@ -48,15 +48,23 @@ export default function Home() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await fetch('/api/auth/send-otp', {
+      const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        alert("Error sending email: " + (data.error || "Unknown error"));
+        return;
+      }
+      
       setAuthState('OTP');
     } catch (err) {
       console.error(err);
-      setAuthState('OTP'); 
+      alert("Network error. Please try again.");
     }
   };
 
