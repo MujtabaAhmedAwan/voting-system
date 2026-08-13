@@ -24,8 +24,16 @@ export default function Home() {
     pollingStation: "Pending Assignment (Future Election)"
   };
 
-  // Poll for admin approval when in PENDING state
+  // Check for direct approval link and poll for admin approval when in PENDING state
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('approved') === 'true') {
+        setAuthState('APPROVED');
+        return;
+      }
+    }
+
     let interval;
     if (authState === 'PENDING') {
       interval = setInterval(async () => {

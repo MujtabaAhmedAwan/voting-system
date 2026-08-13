@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sendApprovalToUser } from '@/utils/email';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -9,23 +10,24 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
   }
 
-  // Ensure global store exists for demo purposes
-  global.userStatusStore = global.userStatusStore || new Map();
-
   if (action === 'approve') {
-    global.userStatusStore.set(email, 'APPROVED');
-    return new NextResponse(`
-      <html>
-        <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-          <h1 style="color: green;">User Approved Successfully!</h1>
-          <p>The user ${email} now has access to the application.</p>
-        </body>
-      </html>
-    `, { headers: { 'Content-Type': 'text/html' } });
+    try {
+      await sendApprovalToUser(email);
+      return new NextResponse(`
+        <html>
+          <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+            <h1 style="color: green;">User Approved Successfully!</h1>
+            <p>An email has been sent to ${email} with their access link.</p>
+          </body>
+        </html>
+      `, { headers: { 'Content-Type': 'text/html' } });
+    } catch (e) {
+      console.error(e);
+      return NextResponse.json({ error: 'Failed to send approval email' }, { status: 500 });
+    }
   } 
   
   if (action === 'deny') {
-    global.userStatusStore.set(email, 'DENIED');
     return new NextResponse(`
       <html>
         <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
