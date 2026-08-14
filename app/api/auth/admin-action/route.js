@@ -5,18 +5,25 @@ import { verify, sign } from '../../../../utils/jwt';
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const token = searchParams.get('token');
+  const oldEmail = searchParams.get('email');
+  const oldAction = searchParams.get('action');
 
-  if (!token) {
-    return NextResponse.json({ error: 'Missing token' }, { status: 400 });
+  let email, action;
+
+  if (token) {
+    const payload = verify(token);
+    if (!payload || !payload.email || !payload.action) {
+      return NextResponse.json({ error: 'Invalid or expired link' }, { status: 400 });
+    }
+    email = payload.email;
+    action = payload.action;
+  } else if (oldEmail && oldAction) {
+    // Backwards compatibility for old emails sent before the JWT update
+    email = oldEmail;
+    action = oldAction;
+  } else {
+    return NextResponse.json({ error: 'Missing token or parameters. Please try registering again.' }, { status: 400 });
   }
-
-  const payload = verify(token);
-  
-  if (!payload || !payload.email || !payload.action) {
-    return NextResponse.json({ error: 'Invalid or expired link' }, { status: 400 });
-  }
-
-  const { email, action } = payload;
 
   if (action === 'approve') {
     try {
