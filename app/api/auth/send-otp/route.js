@@ -13,7 +13,7 @@ export async function POST(request) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
     // Store OTP temporarily (email as key)
-    global.otpStore.set(email, { otp, name, phone, timestamp: Date.now() });
+    global.otpStore.set(email, { email, otp, name, phone, timestamp: Date.now() });
 
     // Send OTP via email
     if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {

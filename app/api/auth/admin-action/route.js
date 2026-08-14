@@ -12,6 +12,8 @@ export async function GET(request) {
 
   if (action === 'approve') {
     try {
+      global.userStatusStore = global.userStatusStore || new Map();
+      global.userStatusStore.set(email, 'APPROVED');
       await sendApprovalToUser(email);
       return new NextResponse(`
         <html>
@@ -28,6 +30,8 @@ export async function GET(request) {
   } 
   
   if (action === 'deny') {
+    global.userStatusStore = global.userStatusStore || new Map();
+    global.userStatusStore.set(email, 'DENIED');
     return new NextResponse(`
       <html>
         <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">

@@ -16,7 +16,7 @@ export async function POST(request) {
     
     // Notify the admin via email
     if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
-       await notifyAdmin(storedData);
+       await notifyAdmin({ ...storedData, email });
     } else {
        console.log(`[DEV MODE] Admin notified about ${email}`);
     }
