@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { sendApprovalToUser } from '@/utils/email';
-import { verify, sign } from '@/utils/jwt';
+import { sendApprovalToUser } from '../../../../utils/email';
+import { verify, sign } from '../../../../utils/jwt';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
