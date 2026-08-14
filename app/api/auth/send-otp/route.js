@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sendOTP } from '../../../../utils/email';
-
-// In a real app, this would be stored in the database.
-// For Vercel deployment preview, we use an in-memory map (note: resets on serverless cold starts)
-global.otpStore = global.otpStore || new Map();
+import { sign } from '../../../../utils/jwt';
 
 export async function POST(request) {
   try {
@@ -12,13 +9,13 @@ export async function POST(request) {
     // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // Store OTP temporarily (email as key)
-    global.otpStore.set(email, { email, otp, name, phone, timestamp: Date.now() });
+    // Sign a token containing the OTP and user info (expires in 10 mins conceptually)
+    const token = sign({ email, otp, name, phone, timestamp: Date.now() });
 
     // Send OTP via email
     if (process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
        await sendOTP(email, otp);
-       return NextResponse.json({ success: true, message: 'OTP sent successfully' });
+       return NextResponse.json({ success: true, message: 'OTP sent successfully', token });
     } else {
        console.log(`[DEV MODE] OTP for ${email} is: ${otp}`);
        return NextResponse.json({ success: false, error: 'Vercel Environment Variables (EMAIL_USER or EMAIL_APP_PASSWORD) are completely missing or empty!' }, { status: 500 });

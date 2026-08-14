@@ -1,20 +1,30 @@
 import { NextResponse } from 'next/server';
 import { sendApprovalToUser } from '@/utils/email';
+import { verify, sign } from '@/utils/jwt';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const email = searchParams.get('email');
-  const action = searchParams.get('action'); // 'approve' or 'deny'
+  const token = searchParams.get('token');
 
-  if (!email || !action) {
-    return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+  if (!token) {
+    return NextResponse.json({ error: 'Missing token' }, { status: 400 });
   }
+
+  const payload = verify(token);
+  
+  if (!payload || !payload.email || !payload.action) {
+    return NextResponse.json({ error: 'Invalid or expired link' }, { status: 400 });
+  }
+
+  const { email, action } = payload;
 
   if (action === 'approve') {
     try {
-      global.userStatusStore = global.userStatusStore || new Map();
-      global.userStatusStore.set(email, 'APPROVED');
-      await sendApprovalToUser(email);
+      // Generate the final access token for the user
+      const accessToken = sign({ email, approved: true });
+      
+      await sendApprovalToUser(email, accessToken);
+      
       return new NextResponse(`
         <html>
           <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
@@ -30,8 +40,6 @@ export async function GET(request) {
   } 
   
   if (action === 'deny') {
-    global.userStatusStore = global.userStatusStore || new Map();
-    global.userStatusStore.set(email, 'DENIED');
     return new NextResponse(`
       <html>
         <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">

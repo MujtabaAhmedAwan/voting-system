@@ -18,11 +18,11 @@ export const sendOTP = async (to, otp) => {
   await transporter.sendMail(mailOptions);
 };
 
-export const notifyAdmin = async (user) => {
+export const notifyAdmin = async (user, approveToken, denyToken) => {
   let baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
   
-  const approveLink = `${baseUrl}/api/auth/admin-action?email=${encodeURIComponent(user.email)}&action=approve`;
-  const denyLink = `${baseUrl}/api/auth/admin-action?email=${encodeURIComponent(user.email)}&action=deny`;
+  const approveLink = `${baseUrl}/api/auth/admin-action?token=${approveToken}`;
+  const denyLink = `${baseUrl}/api/auth/admin-action?token=${denyToken}`;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -45,9 +45,9 @@ export const notifyAdmin = async (user) => {
   await transporter.sendMail(mailOptions);
 };
 
-export const sendApprovalToUser = async (userEmail) => {
+export const sendApprovalToUser = async (userEmail, accessToken) => {
   let baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-  const accessLink = `${baseUrl}/?approved=true&email=${encodeURIComponent(userEmail)}`;
+  const accessLink = `${baseUrl}/?token=${accessToken}`;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,

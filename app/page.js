@@ -5,9 +5,9 @@ import './globals.css';
 export default function Home() {
   const [authState, setAuthState] = useState('REGISTER'); // REGISTER, OTP, PENDING, APPROVED, DENIED
   
-  // Registration State
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [otp, setOtp] = useState('');
+  const [otpToken, setOtpToken] = useState('');
   
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,34 +24,26 @@ export default function Home() {
     pollingStation: "Pending Assignment (Future Election)"
   };
 
-  // Check for direct approval link and poll for admin approval when in PENDING state
+  // Check for direct approval link and local storage token
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('approved') === 'true') {
+      const urlToken = params.get('token');
+      
+      if (urlToken) {
+        localStorage.setItem('voting_access_token', urlToken);
+        // Clean up URL
+        window.history.replaceState({}, document.title, '/');
         setAuthState('APPROVED');
         return;
       }
-    }
 
-    let interval;
-    if (authState === 'PENDING') {
-      interval = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/auth/status?email=${encodeURIComponent(formData.email)}`);
-          const data = await res.json();
-          if (data.status === 'APPROVED') {
-            setAuthState('APPROVED');
-          } else if (data.status === 'DENIED') {
-            setAuthState('DENIED');
-          }
-        } catch (e) {
-          console.error('Polling error', e);
-        }
-      }, 3000); // Check every 3 seconds
+      const storedToken = localStorage.getItem('voting_access_token');
+      if (storedToken) {
+        setAuthState('APPROVED');
+      }
     }
-    return () => clearInterval(interval);
-  }, [authState, formData.email]);
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -69,6 +61,7 @@ export default function Home() {
         return;
       }
       
+      setOtpToken(data.token);
       setAuthState('OTP');
     } catch (err) {
       console.error(err);
@@ -79,15 +72,20 @@ export default function Home() {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     try {
-      await fetch('/api/auth/verify-otp', {
+      const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, otp })
+        body: JSON.stringify({ token: otpToken, otp })
       });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Invalid OTP');
+        return;
+      }
       setAuthState('PENDING');
     } catch (err) {
       console.error(err);
-      setAuthState('PENDING'); 
+      alert("Error verifying OTP");
     }
   };
 
