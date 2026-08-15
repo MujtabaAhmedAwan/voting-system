@@ -40,6 +40,6 @@ jobs:
           name: Release v1.0.${{ github.run_number }}
           draft: false
           prerelease: false
-          files: android-app/app/build/outputs/apk/release/app-release-unsigned.apk
+          files: android-app/app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
