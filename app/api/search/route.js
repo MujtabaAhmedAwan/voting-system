@@ -25,13 +25,37 @@ export async function GET(request) {
     const normalizedQuery = query.trim();
 
     const results = voters.filter(v => {
-      if (v.cnic.includes(normalizedQuery)) {
-        return true;
-      }
-      if (v.raw_line.includes(normalizedQuery)) {
-        return true;
-      }
+      if (v.cnic.includes(normalizedQuery)) return true;
+      if (v.raw_line.includes(normalizedQuery)) return true;
       return false;
+    }).map(v => {
+      // Parse structured data from the garbled line
+      let age = 'Unknown';
+      let familyNo = 'Unknown';
+      let voteNo = 'Unknown';
+      
+      try {
+        const ageMatch = v.raw_line.match(new RegExp(`(\\d{2,3})\\s+${v.cnic}`));
+        if (ageMatch) age = ageMatch[1];
+        
+        const afterCnic = v.raw_line.split(v.cnic)[1];
+        if (afterCnic) {
+          const numsAfter = afterCnic.match(/\d+/g);
+          if (numsAfter && numsAfter.length >= 2) {
+             voteNo = numsAfter[numsAfter.length - 1];
+             familyNo = numsAfter[numsAfter.length - 2];
+          } else if (numsAfter && numsAfter.length === 1) {
+             voteNo = numsAfter[0];
+          }
+        }
+      } catch(e) {}
+
+      return {
+        ...v,
+        age,
+        familyNo,
+        voteNo
+      };
     });
 
     return NextResponse.json({ success: true, results });
