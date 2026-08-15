@@ -270,11 +270,11 @@ body {
 /* Dynamic Highlight Box over the image */
 .highlight-box-overlay {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
+  width: 35%;
   background: var(--highlight-bg);
-  border-top: 2px solid var(--highlight-border);
-  border-bottom: 2px solid var(--highlight-border);
+  border: 2px solid var(--highlight-border);
+  border-radius: 4px;
   pointer-events: none; /* allow clicking through if needed */
   animation: pulseHighlight 2s infinite;
 }
