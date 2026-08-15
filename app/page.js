@@ -231,7 +231,13 @@ export default function Home() {
                     </div>
                     <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
                       <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Name (نام)</span>
-                      <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333', fontFamily: 'serif', direction: 'rtl' }}>{result.name}</span>
+                      <div style={{ marginTop: '5px', overflow: 'hidden', borderRadius: '4px', border: '1px solid #eee' }}>
+                        <img 
+                          src={`/names/${result.cnic}.jpg`} 
+                          alt="Voter Name in Urdu" 
+                          style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain', backgroundColor: '#fff' }} 
+                        />
+                      </div>
                     </div>
                     <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
                       <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Family No (گھرانہ نمبر)</span>
