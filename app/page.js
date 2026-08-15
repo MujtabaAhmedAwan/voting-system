@@ -146,6 +146,11 @@ export default function Home() {
 
   return (
     <main className="main-container">
+      <div className="developer-credit">
+        <p><strong>Developed by:</strong> Malik M Mujtaba Ali Awan</p>
+        <p className="subtitle">Grandson of Councilor Malik Muhammad Ali Awan (Late)</p>
+      </div>
+
       {/* --- 1. REGISTRATION SCREEN --- */}
       {authState === 'REGISTER' && (
         <div className="auth-box">
