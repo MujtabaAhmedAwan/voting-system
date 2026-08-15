@@ -68,7 +68,9 @@ export async function GET(request) {
         name,
         familyNo,
         voteNo,
-        blockCode
+        blockCode,
+        y0_pct: v.y0_pct,
+        y1_pct: v.y1_pct
       };
     });
 

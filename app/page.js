@@ -110,6 +110,9 @@ export default function Home() {
     }
   };
 
+  const [selectedPage, setSelectedPage] = useState(null);
+  const [selectedHighlight, setSelectedHighlight] = useState(null);
+
   const handleSearch = async (e) => {
     e.preventDefault();
     setIsSearching(true);
@@ -134,6 +137,11 @@ export default function Home() {
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const openPageModal = (page, y0_pct, y1_pct) => {
+    setSelectedPage(page);
+    setSelectedHighlight({ top: `${y0_pct}%`, height: `${y1_pct - y0_pct}%` });
   };
 
   return (
@@ -218,21 +226,26 @@ export default function Home() {
               )}
               
               {!searchError && searchResults.length > 0 && searchResults.map((result, idx) => (
-                <div key={idx} className="result-card" style={{ padding: '20px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-                  <div className="result-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                    <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#333' }}>Voter Found</h2>
-                    <span className="badge success" style={{ background: '#e6f4ea', color: '#137333', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>Page {result.page}</span>
+                <div key={idx} className="result-card">
+                  <div className="result-header">
+                    <h2>Voter Found</h2>
+                    <span className="badge success">Page {result.page}</span>
                   </div>
                   
                   <div className="info-grid">
                     <div className="info-item">
                       <span className="label">ID Card No (CNIC)</span>
-                      <span className="value" style={{ color: '#818cf8' }}>{result.cnic}</span>
+                      <span className="value">{result.cnic}</span>
                     </div>
                     <div className="info-item">
-                      <span className="label">Name (نام)</span>
-                      {/* Using the text field as requested, even if it appears garbled. */}
-                      <span className="value urdu">{result.name}</span>
+                      <span className="label">Name & Father's Name (نام)</span>
+                      <div className="name-image-container">
+                        <img 
+                          src={`/names/${result.cnic}.jpg`} 
+                          alt="Voter Name in Urdu" 
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      </div>
                     </div>
                     <div className="info-item">
                       <span className="label">Family No (گھرانہ نمبر)</span>
@@ -248,24 +261,43 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="page-screenshot-section">
-                    <h3>Original Voting List Page (Page {result.page})</h3>
-                    <div className="image-wrapper">
-                      <img 
-                        src={`/pages/page_${result.page}.jpg`} 
-                        alt={`Voting List Page ${result.page}`}
-                        loading="lazy" 
-                      />
-                    </div>
-                    <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', marginTop: '1rem' }}>
-                      Cross-reference your details with the official document above.
-                    </p>
-                  </div>
+                  <button 
+                    className="btn-secondary"
+                    onClick={() => openPageModal(result.page, result.y0_pct, result.y1_pct)}
+                  >
+                    View Original Page (صفحہ دیکھیں)
+                  </button>
                 </div>
               ))}
             </div>
           )}
         </>
+      )}
+
+      {/* Modal Overlay for Full Page Image */}
+      {selectedPage && (
+        <div className="modal-overlay" onClick={() => setSelectedPage(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Original Voting List - Page {selectedPage}</h3>
+              <button className="close-btn" onClick={() => setSelectedPage(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="page-container">
+                <img src={`/pages/page_${selectedPage}.jpg`} alt={`Page ${selectedPage}`} />
+                {selectedHighlight && (
+                  <div 
+                    className="highlight-box-overlay"
+                    style={{
+                      top: selectedHighlight.top,
+                      height: selectedHighlight.height
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );
