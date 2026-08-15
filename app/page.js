@@ -142,6 +142,27 @@ export default function Home() {
     setSelectedPage(page);
   };
 
+  const handleSearchChange = (e) => {
+    let val = e.target.value;
+    
+    // Only apply CNIC masking if the input consists of numbers and dashes
+    if (/^[0-9\-]*$/.test(val)) {
+      // Strip all non-digits
+      let digits = val.replace(/\D/g, '');
+      
+      let formatted = digits;
+      if (digits.length > 5) {
+        formatted = digits.substring(0, 5) + '-' + digits.substring(5);
+      }
+      if (digits.length > 12) {
+        formatted = digits.substring(0, 5) + '-' + digits.substring(5, 12) + '-' + digits.substring(12, 13);
+      }
+      setSearchQuery(formatted);
+    } else {
+      setSearchQuery(val);
+    }
+  };
+
   return (
     <main className="main-container">
       <div className="developer-credit">
@@ -211,7 +232,7 @@ export default function Home() {
               type="text" 
               placeholder="Enter CNIC (e.g., 38201-1140881-7) or Name..." 
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
               className="search-input"
               required
             />
