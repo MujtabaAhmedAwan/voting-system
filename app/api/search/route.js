@@ -30,13 +30,26 @@ export async function GET(request) {
       return false;
     }).map(v => {
       // Parse structured data from the garbled line
-      let age = 'Unknown';
+      let name = 'Unknown';
       let familyNo = 'Unknown';
       let voteNo = 'Unknown';
+      let blockCode = 'Unknown';
       
       try {
+        if (v.block_code && v.block_code !== 'Unknown') {
+          blockCode = v.block_code.slice(-2); // Get last 2 digits
+        }
+
         const ageMatch = v.raw_line.match(new RegExp(`(\\d{2,3})\\s+${v.cnic}`));
-        if (ageMatch) age = ageMatch[1];
+        
+        // Extract the name part (everything before the age and CNIC)
+        const nameMatch = v.raw_line.match(new RegExp(`^(.*?)\\s*\\.?\\.?\\.?\\s*\\d{2,3}\\s+${v.cnic}`));
+        if (nameMatch) {
+            name = nameMatch[1].trim();
+        } else {
+            const cnicMatch = v.raw_line.match(new RegExp(`^(.*?)\\s+${v.cnic}`));
+            if (cnicMatch) name = cnicMatch[1].trim();
+        }
         
         const afterCnic = v.raw_line.split(v.cnic)[1];
         if (afterCnic) {
@@ -52,9 +65,10 @@ export async function GET(request) {
 
       return {
         ...v,
-        age,
+        name,
         familyNo,
-        voteNo
+        voteNo,
+        blockCode
       };
     });
 

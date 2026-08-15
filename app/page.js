@@ -230,8 +230,8 @@ export default function Home() {
                       <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1a73e8' }}>{result.cnic}</span>
                     </div>
                     <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Age (عمر)</span>
-                      <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333' }}>{result.age}</span>
+                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Name (نام)</span>
+                      <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333', fontFamily: 'serif', direction: 'rtl' }}>{result.name}</span>
                     </div>
                     <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
                       <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Family No (گھرانہ نمبر)</span>
@@ -240,6 +240,10 @@ export default function Home() {
                     <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
                       <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Vote No (سلسلہ نمبر)</span>
                       <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333' }}>{result.voteNo}</span>
+                    </div>
+                    <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Block Code (بلاک کوڈ)</span>
+                      <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333' }}>{result.blockCode}</span>
                     </div>
                   </div>
 
