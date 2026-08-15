@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server';
-import { sendApprovalToUser } from '../../../../utils/email';
-import { verify, sign } from '../../../../utils/jwt';
+import { verify, sign } from '../../../../../utils/jwt';
+import { setStatus } from '../../../../../utils/store';
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const token = searchParams.get('token');
-  const oldEmail = searchParams.get('email');
-  const oldAction = searchParams.get('action');
-
+export async function GET(request, { params }) {
+  const token = params.token;
   let email, action;
 
   if (token) {
@@ -17,12 +13,8 @@ export async function GET(request) {
     }
     email = payload.email;
     action = payload.action;
-  } else if (oldEmail && oldAction) {
-    // Backwards compatibility for old emails sent before the JWT update
-    email = oldEmail;
-    action = oldAction;
   } else {
-    return NextResponse.json({ error: 'Missing token or parameters. Please try registering again.' }, { status: 400 });
+    return NextResponse.json({ error: 'Missing token in URL. Please try registering again.' }, { status: 400 });
   }
 
   if (action === 'approve') {
@@ -30,23 +22,25 @@ export async function GET(request) {
       // Generate the final access token for the user
       const accessToken = sign({ email, approved: true });
       
-      await sendApprovalToUser(email, accessToken);
+      // Save state to store so frontend can automatically login without opening gmail
+      setStatus(email, { status: 'approved', accessToken });
       
       return new NextResponse(`
         <html>
           <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
             <h1 style="color: green;">User Approved Successfully!</h1>
-            <p>An email has been sent to ${email} with their access link.</p>
+            <p>The user will be logged in automatically in their app.</p>
           </body>
         </html>
       `, { headers: { 'Content-Type': 'text/html' } });
     } catch (e) {
       console.error(e);
-      return NextResponse.json({ error: 'Failed to send approval email' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to process approval' }, { status: 500 });
     }
   } 
   
   if (action === 'deny') {
+    setStatus(email, { status: 'denied' });
     return new NextResponse(`
       <html>
         <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">

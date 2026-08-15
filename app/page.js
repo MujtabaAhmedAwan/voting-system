@@ -38,6 +38,34 @@ export default function Home() {
     }
   }, []);
 
+  // Poll for admin approval when in PENDING state
+  useEffect(() => {
+    let intervalId;
+    if (authState === 'PENDING' && formData.email) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/auth/status?email=${encodeURIComponent(formData.email)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'approved' && data.accessToken) {
+              localStorage.setItem('voting_access_token', data.accessToken);
+              setAuthState('APPROVED');
+              clearInterval(intervalId);
+            } else if (data.status === 'denied') {
+              setAuthState('DENIED');
+              clearInterval(intervalId);
+            }
+          }
+        } catch (e) {
+          console.error('Polling error', e);
+        }
+      }, 3000); // Check every 3 seconds
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [authState, formData.email]);
+
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
@@ -146,7 +174,7 @@ export default function Home() {
           <div className="status-icon wait" style={{animation: 'spin 2s linear infinite'}}>⏳</div>
           <h2>Wait for Access</h2>
           <p>Your email has been verified correctly!</p>
-          <p className="muted">An email has been sent to the Admin with your details. Once they approve your request from their email, you will gain access automatically.</p>
+          <p className="muted">An email has been sent to the Admin. Please wait on this screen. Once they approve your request, you will be automatically logged in.</p>
         </div>
       )}
 
