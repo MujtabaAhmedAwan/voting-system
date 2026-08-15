@@ -224,48 +224,43 @@ export default function Home() {
                     <span className="badge success" style={{ background: '#e6f4ea', color: '#137333', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>Page {result.page}</span>
                   </div>
                   
-                  <div className="info-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginTop: '15px' }}>
-                    <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>ID Card No (CNIC)</span>
-                      <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1a73e8' }}>{result.cnic}</span>
+                  <div className="info-grid">
+                    <div className="info-item">
+                      <span className="label">ID Card No (CNIC)</span>
+                      <span className="value" style={{ color: '#818cf8' }}>{result.cnic}</span>
                     </div>
-                    <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Name (نام)</span>
-                      <div style={{ marginTop: '5px', overflow: 'hidden', borderRadius: '4px', border: '1px solid #eee' }}>
-                        <img 
-                          src={`/names/${result.cnic}.jpg`} 
-                          alt="Voter Name in Urdu" 
-                          style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain', backgroundColor: '#fff' }} 
-                        />
-                      </div>
+                    <div className="info-item">
+                      <span className="label">Name (نام)</span>
+                      {/* Using the text field as requested, even if it appears garbled. */}
+                      <span className="value urdu">{result.name}</span>
                     </div>
-                    <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Family No (گھرانہ نمبر)</span>
-                      <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333' }}>{result.familyNo}</span>
+                    <div className="info-item">
+                      <span className="label">Family No (گھرانہ نمبر)</span>
+                      <span className="value">{result.familyNo}</span>
                     </div>
-                    <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Vote No (سلسلہ نمبر)</span>
-                      <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333' }}>{result.voteNo}</span>
+                    <div className="info-item">
+                      <span className="label">Vote No (سلسلہ نمبر)</span>
+                      <span className="value">{result.voteNo}</span>
                     </div>
-                    <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>Block Code (بلاک کوڈ)</span>
-                      <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#333' }}>{result.blockCode}</span>
+                    <div className="info-item">
+                      <span className="label">Block Code (بلاک کوڈ)</span>
+                      <span className="value">{result.blockCode}</span>
                     </div>
                   </div>
 
-                  <hr className="divider" style={{ border: 'none', borderTop: '1px solid #eee', margin: '15px 0' }} />
-
-                  <details style={{ cursor: 'pointer' }}>
-                    <summary style={{ fontSize: '0.85rem', color: '#1a73e8', textTransform: 'uppercase', marginBottom: '5px', outline: 'none' }}>Show Raw Extracted Data</summary>
-                    <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #e9ecef', overflowX: 'auto', marginTop: '10px' }}>
-                       <span style={{ fontSize: '1.1rem', color: '#333', fontFamily: 'serif', direction: 'rtl', display: 'block', textAlign: 'right' }}>
-                          {result.raw_line}
-                       </span>
+                  <div className="page-screenshot-section">
+                    <h3>Original Voting List Page (Page {result.page})</h3>
+                    <div className="image-wrapper">
+                      <img 
+                        src={`/pages/page_${result.page}.jpg`} 
+                        alt={`Voting List Page ${result.page}`}
+                        loading="lazy" 
+                      />
                     </div>
-                    <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '8px' }}>
-                       * Text is garbled because PDF fonts do not support Unicode. Please refer to PDF Page {result.page} for the exact printed names.
+                    <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', marginTop: '1rem' }}>
+                      Cross-reference your details with the official document above.
                     </p>
-                  </details>
+                  </div>
                 </div>
               ))}
             </div>
