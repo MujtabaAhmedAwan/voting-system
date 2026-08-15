@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { notifyAdmin } from '../../../../utils/email';
 import { verify, sign } from '../../../../utils/jwt';
+import { setStatus } from '../../../../utils/store';
 
 export async function POST(request) {
   try {
@@ -17,6 +18,9 @@ export async function POST(request) {
     }
 
     // OTP is correct!
+    // Save state to store so frontend can poll
+    setStatus(payload.email, { status: 'pending' });
+
     // Generate admin action tokens
     const approveToken = sign({ email: payload.email, action: 'approve', name: payload.name, phone: payload.phone });
     const denyToken = sign({ email: payload.email, action: 'deny' });

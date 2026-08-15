@@ -13,16 +13,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
 
-  const mockResult = {
-    name: "Ali Khan",
-    idCardNo: "12345-6789012-3",
-    fatherName: "Ahmed Khan",
-    address: "House 123, Street 4, Islamabad",
-    children: [{ name: "Sara Khan", age: 22 }, { name: "Usman Khan", age: 19 }],
-    listCode: "LST-9982",
-    pageNumber: 42,
-    pollingStation: "Pending Assignment (Future Election)"
-  };
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   // Check for direct approval link and local storage token
   useEffect(() => {
@@ -89,9 +82,30 @@ export default function Home() {
     }
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
+    setIsSearching(true);
+    setSearchError('');
+    setSearchResults([]);
     setHasSearched(true);
+    
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+      const data = await res.json();
+      
+      if (res.ok) {
+        setSearchResults(data.results || []);
+        if (data.results.length === 0) {
+           setSearchError('No voter found with that CNIC or name.');
+        }
+      } else {
+        setSearchError(data.error || 'Failed to search');
+      }
+    } catch (err) {
+      setSearchError('Network error during search.');
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -150,53 +164,60 @@ export default function Home() {
         <>
           <div className="header">
             <h1>Voting List Verification</h1>
-            <p>Search for your vote details, assigned list, and future polling station.</p>
+            <p>Search for your vote details in the 2023 List.</p>
           </div>
 
           <form className="search-form" onSubmit={handleSearch}>
             <input 
               type="text" 
-              placeholder="Enter ID Card No, Name, or Phone..." 
+              placeholder="Enter CNIC (e.g., 38201-1140881-7) or Name..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
               required
             />
-            <button type="submit" className="search-btn">Search Vote</button>
+            <button type="submit" className="search-btn" disabled={isSearching}>
+              {isSearching ? 'Searching...' : 'Search Vote'}
+            </button>
           </form>
 
           {hasSearched && (
-            <div className="result-card">
-              <div className="result-header">
-                <h2>Voter Information Found</h2>
-                <span className="badge success">Verified</span>
-              </div>
+            <div className="result-container" style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {searchError && (
+                <div className="auth-box text-center" style={{ padding: '20px' }}>
+                  <p style={{ color: 'red', margin: 0 }}>{searchError}</p>
+                </div>
+              )}
               
-              <div className="info-grid">
-                <div className="info-item"><span className="label">Full Name</span><span className="value">{mockResult.name}</span></div>
-                <div className="info-item"><span className="label">ID Card No</span><span className="value">{mockResult.idCardNo}</span></div>
-                <div className="info-item"><span className="label">Father/Husband Name</span><span className="value">{mockResult.fatherName}</span></div>
-                <div className="info-item"><span className="label">Address</span><span className="value">{mockResult.address}</span></div>
-              </div>
+              {!searchError && searchResults.length > 0 && searchResults.map((result, idx) => (
+                <div key={idx} className="result-card" style={{ padding: '20px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                  <div className="result-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.25rem', color: '#333' }}>Voter Found</h2>
+                    <span className="badge success" style={{ background: '#e6f4ea', color: '#137333', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>Page {result.page}</span>
+                  </div>
+                  
+                  <div className="info-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                    <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase' }}>ID Card No (CNIC)</span>
+                      <span className="value" style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1a73e8' }}>{result.cnic}</span>
+                    </div>
+                  </div>
 
-              <hr className="divider" />
+                  <hr className="divider" style={{ border: 'none', borderTop: '1px solid #eee', margin: '15px 0' }} />
 
-              <div className="list-details-grid">
-                <div className="highlight-box"><h3>Voting List Code</h3><p className="big-text">{mockResult.listCode}</p></div>
-                <div className="highlight-box"><h3>Page Number</h3><p className="big-text">Pg. {mockResult.pageNumber}</p></div>
-                <div className="highlight-box primary"><h3>Polling Station</h3><p className="medium-text">{mockResult.pollingStation}</p></div>
-              </div>
-
-              <hr className="divider" />
-
-              <div className="children-section">
-                <h3>Registered Family Members (Children)</h3>
-                <ul className="children-list">
-                  {mockResult.children.map((child, index) => (
-                    <li key={index}><strong>{child.name}</strong> (Age: {child.age})</li>
-                  ))}
-                </ul>
-              </div>
+                  <div className="info-item" style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span className="label" style={{ fontSize: '0.85rem', color: '#666', textTransform: 'uppercase', marginBottom: '5px' }}>Extracted Details (Raw Text)</span>
+                      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #e9ecef', overflowX: 'auto' }}>
+                         <span style={{ fontSize: '1.1rem', color: '#333', fontFamily: 'serif', direction: 'rtl', display: 'block', textAlign: 'right' }}>
+                            {result.raw_line}
+                         </span>
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '8px' }}>
+                         * The original PDF text may appear jumbled when extracted. Please refer to PDF Page {result.page} for the exact printed layout.
+                      </p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </>
