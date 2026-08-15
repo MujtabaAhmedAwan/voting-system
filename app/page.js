@@ -292,6 +292,14 @@ export default function Home() {
                 <img src={`/pages/page_${selectedPage}.jpg`} alt={`Page ${selectedPage}`} />
                 {selectedHighlight && (
                   <div 
+                    ref={(el) => {
+                      if (el) {
+                        // Small timeout to ensure image has started rendering and container has height
+                        setTimeout(() => {
+                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                      }
+                    }}
                     className="highlight-box-overlay"
                     style={{
                       top: selectedHighlight.top,
