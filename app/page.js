@@ -111,7 +111,6 @@ export default function Home() {
   };
 
   const [selectedPage, setSelectedPage] = useState(null);
-  const [selectedHighlight, setSelectedHighlight] = useState(null);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -139,9 +138,8 @@ export default function Home() {
     }
   };
 
-  const openPageModal = (page, y0_pct, y1_pct) => {
+  const openPageModal = (page) => {
     setSelectedPage(page);
-    setSelectedHighlight({ top: `${y0_pct}%`, height: `${y1_pct - y0_pct}%` });
   };
 
   return (
@@ -268,7 +266,7 @@ export default function Home() {
 
                   <button 
                     className="btn-secondary"
-                    onClick={() => openPageModal(result.page, result.y0_pct, result.y1_pct)}
+                    onClick={() => openPageModal(result.page)}
                   >
                     View Original Page (صفحہ دیکھیں)
                   </button>
@@ -290,23 +288,6 @@ export default function Home() {
             <div className="modal-body">
               <div className="page-container">
                 <img src={`/pages/page_${selectedPage}.jpg`} alt={`Page ${selectedPage}`} />
-                {selectedHighlight && (
-                  <div 
-                    ref={(el) => {
-                      if (el) {
-                        // Small timeout to ensure image has started rendering and container has height
-                        setTimeout(() => {
-                          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 100);
-                      }
-                    }}
-                    className="highlight-box-overlay"
-                    style={{
-                      top: selectedHighlight.top,
-                      height: selectedHighlight.height
-                    }}
-                  />
-                )}
               </div>
             </div>
           </div>
