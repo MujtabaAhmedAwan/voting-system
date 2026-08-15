@@ -270,8 +270,8 @@ body {
 /* Dynamic Highlight Box over the image */
 .highlight-box-overlay {
   position: absolute;
-  left: 50%;
-  width: 35%;
+  left: 60%;
+  width: 20%;
   background: var(--highlight-bg);
   border: 2px solid var(--highlight-border);
   border-radius: 4px;

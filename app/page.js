@@ -121,7 +121,7 @@ export default function Home() {
     setHasSearched(true);
     
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`, { cache: 'no-store' });
       const data = await res.json();
       
       if (res.ok) {
