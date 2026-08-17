@@ -1,30 +1,20 @@
-import fs from 'fs';
-import path from 'path';
+import { kv } from '@vercel/kv';
 
-const storePath = process.env.VERCEL ? '/tmp/auth_store.json' : path.join(process.cwd(), '.auth_store.json');
-
-export function getStatus(email) {
+export async function getStatus(email) {
   try {
-    if (fs.existsSync(storePath)) {
-      const data = fs.readFileSync(storePath, 'utf8');
-      return JSON.parse(data)[email];
-    }
-    return null;
+    const data = await kv.get(`auth_status:${email}`);
+    return data;
   } catch (e) {
-    console.error('Error reading from store', e);
+    console.error('Error reading from Vercel KV store', e);
     return null;
   }
 }
 
-export function setStatus(email, statusData) {
+export async function setStatus(email, statusData) {
   try {
-    let data = {};
-    if (fs.existsSync(storePath)) {
-      data = JSON.parse(fs.readFileSync(storePath, 'utf8'));
-    }
-    data[email] = statusData;
-    fs.writeFileSync(storePath, JSON.stringify(data));
+    // Expire pending requests after 24 hours to keep the DB clean
+    await kv.set(`auth_status:${email}`, statusData, { ex: 86400 });
   } catch (e) {
-    console.error('Error writing to store', e);
+    console.error('Error writing to Vercel KV store', e);
   }
 }

@@ -23,7 +23,7 @@ export async function GET(request, { params }) {
       const accessToken = sign({ email, approved: true });
       
       // Save state to store so frontend can automatically login without opening gmail
-      setStatus(email, { status: 'approved', accessToken });
+      await setStatus(email, { status: 'approved', accessToken });
       
       return new NextResponse(`
         <html>
@@ -40,7 +40,7 @@ export async function GET(request, { params }) {
   } 
   
   if (action === 'deny') {
-    setStatus(email, { status: 'denied' });
+    await setStatus(email, { status: 'denied' });
     return new NextResponse(`
       <html>
         <body style="font-family: sans-serif; text-align: center; margin-top: 50px;">

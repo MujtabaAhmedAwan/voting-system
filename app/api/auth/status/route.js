@@ -9,7 +9,7 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Email is required' }, { status: 400 });
   }
 
-  const statusData = getStatus(email);
+  const statusData = await getStatus(email);
   if (!statusData) {
     return NextResponse.json({ status: 'not_found' });
   }

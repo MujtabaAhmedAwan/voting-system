@@ -19,7 +19,7 @@ export async function POST(request) {
 
     // OTP is correct!
     // Save state to store so frontend can poll
-    setStatus(payload.email, { status: 'pending' });
+    await setStatus(payload.email, { status: 'pending' });
 
     // Generate admin action tokens
     const approveToken = sign({ email: payload.email, action: 'approve', name: payload.name, phone: payload.phone });

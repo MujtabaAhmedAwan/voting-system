@@ -1,10 +1,12 @@
 import nodemailer from 'nodemailer';
 
 export const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.SMTP_HOST || 'smtp.resend.com',
+  port: parseInt(process.env.SMTP_PORT || '465'),
+  secure: true,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD, // App password from Google
+    user: process.env.EMAIL_USER || 'resend',
+    pass: process.env.EMAIL_APP_PASSWORD, // Add your Resend or SMTP password here
   },
 });
 
