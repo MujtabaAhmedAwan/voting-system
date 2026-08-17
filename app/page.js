@@ -164,7 +164,7 @@ export default function Home() {
   };
 
   return (
-    <main className="main-container">
+    <main className="main-container glass-panel">
       <div className="developer-credit">
         <p><strong>Developed by:</strong> Malik M Mujtaba Ali Awan</p>
         <p className="subtitle">Grandson of Councilor Malik Muhammad Ali Awan (Late)</p>
@@ -261,7 +261,7 @@ export default function Home() {
                       <span className="label">ID Card No (CNIC)</span>
                       <span className="value">{result.cnic}</span>
                     </div>
-                    <div className="info-item">
+                    <div className="info-item full-width">
                       <span className="label">Name & Father's Name (نام)</span>
                       <div className="name-image-container">
                         <img 
