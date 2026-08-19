@@ -4,10 +4,11 @@ import path from 'path';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q');
+  const familyNoParam = searchParams.get('familyNo');
+  const blockCodeParam = searchParams.get('blockCode');
   
-  if (!query) {
-    return NextResponse.json({ error: 'Search query is required' }, { status: 400 });
+  if (!familyNoParam || !blockCodeParam) {
+    return NextResponse.json({ error: 'familyNo and blockCode are required' }, { status: 400 });
   }
 
   try {
@@ -37,16 +38,8 @@ export async function GET(request) {
       }
     }
 
-    // Search by CNIC first (exact match ignoring formatting or partial match)
-    // Then search raw line for names (might be unreliable due to Urdu text extraction)
-    const normalizedQuery = query.trim();
-
-    const results = voters.filter(v => {
-      if (v.cnic.includes(normalizedQuery)) return true;
-      if (v.raw_line.includes(normalizedQuery)) return true;
-      return false;
-    }).map(v => {
-      // Parse structured data from the garbled line
+    // To find family members, we need to parse the structured data first, because familyNo is not stored as a key
+    const results = voters.map(v => {
       let name = 'Unknown';
       let familyNo = 'Unknown';
       let voteNo = 'Unknown';
@@ -65,8 +58,6 @@ export async function GET(request) {
         } else {
           // Fallback to extraction if not in family_data.json
           const ageMatch = v.raw_line.match(new RegExp(`(\\d{2,3})\\s+${v.cnic}`));
-          
-          // Extract the name part (everything before the age and CNIC)
           const nameMatch = v.raw_line.match(new RegExp(`^(.*?)\\s*\\.?\\.?\\.?\\s*\\d{2,3}\\s+${v.cnic}`));
           if (nameMatch) {
               name = nameMatch[1].trim();
@@ -97,6 +88,7 @@ export async function GET(request) {
               }
           }
         }
+        
         // ==========================================
         // MANUAL OVERRIDES: Add missing or merged CNICs here
         // If the PDF extraction messed up a Gharana Number, you can force it here.
@@ -117,9 +109,9 @@ export async function GET(request) {
             if (cnicOverrides[v.cnic].voteNo) voteNo = cnicOverrides[v.cnic].voteNo;
         }
         // ==========================================
-        
       } catch(e) {}
-      // Add mock location and constituency mapping based on block_code
+
+      // Add mock location and constituency mapping
       let constituency = 'NA-123 / PP-456';
       let pollingStation = 'Govt. Primary School, Local Block';
       let district = 'Unknown District';
@@ -144,11 +136,23 @@ export async function GET(request) {
         pollingStation,
         district
       };
+    }).filter(v => {
+      if (familyNoParam === 'Unknown' || v.familyNo === 'Unknown') {
+          return false;
+      }
+      
+      // STRICT FILTER: Only show people from the EXACT same block code.
+      // Do NOT merge adjacent blocks, as they represent completely different geographic areas
+      // in some constituencies.
+      const isCorrectFamily = v.familyNo === familyNoParam;
+      const isCorrectBlock = v.block_code === blockCodeParam;
+
+      return isCorrectFamily && isCorrectBlock;
     });
 
     return NextResponse.json({ success: true, results });
   } catch (error) {
-    console.error('Search error:', error);
-    return NextResponse.json({ error: 'Failed to search voter database' }, { status: 500 });
+    console.error('Family search error:', error);
+    return NextResponse.json({ error: 'Failed to search family database' }, { status: 500 });
   }
 }

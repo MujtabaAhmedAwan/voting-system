@@ -17,6 +17,12 @@ export default function Home() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
+  // Family State
+  const [familyResults, setFamilyResults] = useState([]);
+  const [isFamilySearching, setIsFamilySearching] = useState(false);
+  const [familyError, setFamilyError] = useState('');
+  const [showFamilyModal, setShowFamilyModal] = useState(false);
+
   // Check for direct approval link and local storage token
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -140,6 +146,58 @@ export default function Home() {
 
   const openPageModal = (page) => {
     setSelectedPage(page);
+  };
+
+  const handleFamilySearch = async (familyNo, blockCode) => {
+    setIsFamilySearching(true);
+    setFamilyError('');
+    setShowFamilyModal(true);
+    setFamilyResults([]);
+    try {
+      const res = await fetch(`/api/family?familyNo=${encodeURIComponent(familyNo)}&blockCode=${encodeURIComponent(blockCode)}`);
+      const data = await res.json();
+      if (res.ok) {
+        setFamilyResults(data.results || []);
+        if (data.results.length === 0) setFamilyError('No other family members found.');
+      } else {
+        setFamilyError(data.error || 'Failed to search family');
+      }
+    } catch (err) {
+      setFamilyError('Network error during family search.');
+    } finally {
+      setIsFamilySearching(false);
+    }
+  };
+
+  const printVoterSlip = async (voter) => {
+    try {
+      // 000018f0-0000-1000-8000-00805f9b34fb is a common BLE service UUID for generic mobile thermal printers
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+        optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+      });
+
+      const server = await device.gatt.connect();
+      const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+      const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+      const encoder = new TextEncoder();
+      const text = `
+VOTER SLIP
+------------------------
+CNIC: ${voter.cnic}
+Gharana No: ${voter.familyNo}
+Silsila No: ${voter.voteNo}
+Block Code: ${voter.blockCode}
+Polling Station: ${voter.pollingStation || 'N/A'}
+------------------------
+\n\n\n`;
+      await characteristic.writeValue(encoder.encode(text));
+      alert('Printing started!');
+    } catch (error) {
+      console.error('Printing error:', error);
+      alert('Failed to connect or print. Please ensure bluetooth is on and a supported thermal printer is nearby. Note: iOS is not supported.');
+    }
   };
 
   const handleSearchChange = (e) => {
@@ -283,14 +341,34 @@ export default function Home() {
                       <span className="label">Block Code (بلاک کوڈ)</span>
                       <span className="value">{result.blockCode}</span>
                     </div>
+                    <div className="info-item full-width" style={{ marginTop: '10px', padding: '10px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <span className="label">Voting Location & Constituency</span>
+                      <span className="value" style={{ fontSize: '1rem', display: 'block' }}><strong>{result.constituency}</strong> - {result.district}</span>
+                      <span className="value" style={{ fontSize: '0.9rem', color: '#ccc' }}>Polling Station: {result.pollingStation}</span>
+                    </div>
                   </div>
 
-                  <button 
-                    className="btn-secondary"
-                    onClick={() => openPageModal(result.page)}
-                  >
-                    View Original Page (صفحہ دیکھیں)
-                  </button>
+                  <div className="action-buttons" style={{ display: 'flex', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
+                    <button 
+                      className="btn-secondary"
+                      onClick={() => openPageModal(result.page)}
+                    >
+                      Original Page
+                    </button>
+                    <button 
+                      className="btn-primary"
+                      onClick={() => handleFamilySearch(result.familyNo, result.block_code)}
+                    >
+                      View Family (Gharana)
+                    </button>
+                    <button 
+                      className="btn-secondary"
+                      style={{ backgroundColor: '#28a745', color: 'white', borderColor: '#28a745' }}
+                      onClick={() => printVoterSlip(result)}
+                    >
+                      Print Slip (Bluetooth)
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -310,6 +388,51 @@ export default function Home() {
               <div className="page-container">
                 <img src={`/pages/page_${selectedPage}.jpg`} alt={`Page ${selectedPage}`} />
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Family Modal */}
+      {showFamilyModal && (
+        <div className="modal-overlay" onClick={() => setShowFamilyModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="modal-header">
+              <h3>Family (Gharana) Members</h3>
+              <button className="close-btn" onClick={() => setShowFamilyModal(false)}>×</button>
+            </div>
+            <div className="modal-body" style={{ padding: '20px' }}>
+              {isFamilySearching ? (
+                <div className="text-center"><div className="status-icon wait" style={{animation: 'spin 2s linear infinite'}}>⏳</div><p>Searching...</p></div>
+              ) : familyError ? (
+                <p style={{ color: 'red' }}>{familyError}</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  {familyResults.map((fam, idx) => (
+                    <div key={idx} style={{ border: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <strong>{fam.cnic}</strong>
+                        <p style={{ margin: '5px 0', fontSize: '0.9rem', color: '#ccc' }}>Silsila No: {fam.voteNo} | Gharana No: {fam.familyNo}</p>
+                        <div className="name-image-container" style={{ height: '40px', marginTop: '10px' }}>
+                          <img 
+                            src={`/names/${fam.cnic}.jpg`} 
+                            alt="Voter Name" 
+                            style={{ maxHeight: '100%', borderRadius: '4px' }}
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        </div>
+                      </div>
+                      <button 
+                        className="btn-secondary"
+                        style={{ backgroundColor: '#28a745', color: 'white', padding: '8px 15px', fontSize: '0.9rem', border: 'none' }}
+                        onClick={() => printVoterSlip(fam)}
+                      >
+                        Print Slip
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
